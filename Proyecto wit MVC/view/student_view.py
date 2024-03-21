@@ -1,22 +1,20 @@
 class StudentView:
 
     def show_menu(self):
-        print("1. Agregar jugador")
-        print("2. Consultar jugador")
-        print("3. Actualizar jugadores")
-        print("4. Eliminar jugadores")
+        print("1. Agregar estudiante")
+        print("2. Listar estudiantes")
+        print("3. Actualizar estudiante")
+        print("4. Eliminar estudiante")
         print("5. Salir")
         return input("Selecione una opción: ")
 
     def get_student_data(self):
         return {
-            "name": input("Nombre del jugador: "),
-            "age": input("Cuando nacio el jugador?: "),
-            "origin": input("De donde es el jugador?: "),
-            "gender": input("Es hombre o mujer?: "),
-            "height": input("Cuanto mide el jugador?: "),
-            "weight": input("Cuanto pesa el jugador?: ")
-
+            "id": input("ID del estudiante: "),
+            "name": input("Nombre del estudiante: "),
+            "first_name": input("Primer apellido del estudiante: "),
+            "second_last_name": input("Segundo apellido del estudiante: "),
+            "age": input("Edad del estudiante: ")
         }
 
     def show_students(self,students):

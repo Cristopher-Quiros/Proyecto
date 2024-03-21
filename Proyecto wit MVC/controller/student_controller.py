@@ -1,5 +1,5 @@
-from model.student_model import StudentModel # noqa
-from view.student_view import StudentView # noqa
+from model.student_model import StudentModel
+from view.student_view import StudentView
 
 class StudentController:
     def __init__(self):
