@@ -1,15 +1,1 @@
-[
-    {
-        "id": 1,
-        "name": "Messi",
-        "origin": "Rosario, Argentina",
-        "club": "9",
-        "gender": "Masculino",
-        "position": "Extremo Derecho",
-        "height": "1.70m",
-        "age": 36,
-        "speed": 99,
-        "control": 99,
-        "agility": 99
-    }
-]
+[]

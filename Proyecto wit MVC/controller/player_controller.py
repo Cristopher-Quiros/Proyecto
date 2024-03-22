@@ -1,3 +1,6 @@
+import json # noqa
+import datetime # noqa
+
 from model.player_model import PlayerModel
 from view.player_view import PlayerView
 
@@ -30,13 +33,15 @@ class PlayerController:
 
     def add_player(self):
         player_data = self.view.get_player_data()
-        self.model.add_player(player_data)
-        self.view.show_message("Jugador agregado exitosamente")
+        if not self.model.player_exists(player_data['id']):
+            self.model.add_player(player_data)
+            self.view.show_message("Jugador agregado exitosamente")
+        else:
+            self.view.show_message("El jugador ya existe en la base de datos.")
 
     def read_player(self):
         player_id = self.view.get_player_id()
-        players = self.model.get_players()
-        player = next((player for player in players if player['id'] == player_id), None)
+        player = self.model.get_player(player_id)
         if player:
             self.view.show_player_info(player)
         else:
@@ -44,10 +49,13 @@ class PlayerController:
 
     def update_player(self):
         player_id = self.view.get_player_id()
-        player_data = self.view.get_player_data()
-        success = self.model.update_player(player_id, player_data)
-        if success:
-            self.view.show_message("Jugador actualizado exitosamente")
+        if self.model.player_exists(player_id):
+            player_data = self.view.get_player_data()
+            success = self.model.update_player(player_id, player_data)
+            if success:
+                self.view.show_message("Jugador actualizado exitosamente")
+            else:
+                self.view.show_message("Hubo un problema al actualizar el jugador.")
         else:
             self.view.show_message("No se encontró ningún jugador con ese ID.")
 

@@ -1,19 +1,6 @@
 import datetime
 
 class PlayerView:
-
-    def show_player_info(self, player_info):
-        print("Información del Jugador:")
-        print(f"ID: {player_info.get('id', 'N/A')}")
-        print(f"Nombre: {player_info.get('name', 'N/A')}")
-        print(f"Fecha de nacimiento: {player_info.get('date_of_birth', 'N/A')}")
-        print(f"Origen: {player_info.get('origin', 'N/A')}")
-        print(f"Género: {player_info.get('gender', 'N/A')}")
-        print(f"Altura: {player_info.get('height', 'N/A')} m")
-        print(f"Peso: {player_info.get('weight', 'N/A')} kg")
-        print(f"Posición en campo: {player_info.get('position', 'N/A')}")
-        print(f"Club Militante: {player_info.get('club', 'N/A')}")
-        print(f"Reconocimientos: {player_info.get('achievements', 'N/A')}")
     def show_menu(self):
         print("\nMenú Principal:")
         print("1. Insertar un nuevo jugador")
@@ -47,6 +34,19 @@ class PlayerView:
                 return player_id
             except ValueError:
                 print("El ID debe ser un número entero. Inténtelo de nuevo.")
+
+    def show_player_info(self, player_info):
+        print("Información del Jugador:")
+        print(f"ID: {player_info.get('id', 'N/A')}")
+        print(f"Nombre: {player_info.get('name', 'N/A')}")
+        print(f"Fecha de nacimiento: {player_info.get('date_of_birth', 'N/A')}")
+        print(f"Origen: {player_info.get('origin', 'N/A')}")
+        print(f"Género: {player_info.get('gender', 'N/A')}")
+        print(f"Altura: {player_info.get('height', 'N/A')} m")
+        print(f"Peso: {player_info.get('weight', 'N/A')} kg")
+        print(f"Posición en campo: {player_info.get('position', 'N/A')}")
+        print(f"Club Militante: {player_info.get('club', 'N/A')}")
+        print(f"Reconocimientos: {player_info.get('achievements', 'N/A')}")
 
     def show_message(self, message):
         print(message)
