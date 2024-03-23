@@ -1,6 +1,21 @@
 import datetime
+import json
 
 class PlayerView:
+    def __init__(self, data_file):
+        self._data_file = data_file
+
+    def read_data(self):
+        try:
+            with open(self._data_file, 'r') as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return []
+
+    def write_data(self, data):
+        with open(self._data_file, 'w') as file:
+            json.dump(data, file, indent=4)
+
     def show_menu(self):
         print("\nMenú Principal:")
         print("1. Insertar un nuevo jugador")
@@ -127,3 +142,19 @@ class PlayerView:
                 return value.capitalize()
             else:
                 print("Género inválido. Por favor, ingrese 'Masculino' o 'Femenino'.")
+
+    def get_list_option(self):
+        print("\nOpciones de visualización:")
+        print("1. Por origen")
+        print("2. Por posición de campo")
+        print("3. Por reconocimientos")
+        return input("Seleccione una opción para filtrar la lista de jugadores: ")
+
+    def get_origin_input(self):
+        return input("Ingrese el origen para filtrar la lista de jugadores: ")
+
+    def get_position_input(self):
+        return input("Ingrese la posición para filtrar la lista de jugadores: ")
+
+    def get_recognition_input(self):
+        return input("Ingrese el número de reconocimientos para filtrar la lista de jugadores: ")

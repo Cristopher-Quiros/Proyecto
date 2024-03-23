@@ -67,49 +67,14 @@ class PlayerModel:
         else:
             return False
 
-
-    # Consulta avanzada 1: Mostrar cantidad de jugadores por origen
     def players_by_origin(self, origin):
         players = self.read_data()
-        return len([player for player in players if player['origin'] == origin])
+        return [player for player in players if player['origin'] == origin]
 
-    # Consulta avanzada 2: Mostrar jugadores en un rango de edad
-    def players_by_age_range(self, min_age, max_age):
+    def players_by_position(self, position):
         players = self.read_data()
-        return [player for player in players if min_age <= player['age'] <= max_age]
+        return [player for player in players if player['position'] == position]
 
-    # Consulta avanzada 3: Mostrar cantidad de jugadores por altura y género
-    def players_by_height_and_gender(self, height, gender):
+    def players_by_recognition(self, recognition):
         players = self.read_data()
-        return len([player for player in players if player['height'] == height and player['gender'] == gender])
-
-    # Consulta avanzada 4: Mostrar jugadores de un club específico
-    def players_by_club(self, club):
-        players = self.read_data()
-        return [player for player in players if player['club'] == club]
-
-    # Consulta avanzada 5: Mostrar cantidad de jugadoras por posición en el campo
-    def female_players_by_position(self, position):
-        players = self.read_data()
-        return len([player for player in players if player['gender'] == 'Femenino' and player['position'] == position])
-
-    # Consulta avanzada 6: Mostrar top 10 jugadores por altura y agilidad
-    def top_players_by_height_and_agility(self):
-        players = self.read_data()
-        top_players = sorted(players, key=lambda x: (x['height'], x['agility']), reverse=True)[:10]
-        return top_players
-
-    # Consulta avanzada 7: Mostrar cantidad de jugadores por velocidad en un rango específico
-    def players_by_speed_range(self, min_speed, max_speed):
-        players = self.read_data()
-        return len([player for player in players if min_speed <= player['speed'] <= max_speed])
-
-    # Consulta avanzada 8: Calcular promedio de control de balón para una posición específica
-    def average_ball_control_by_position(self, position):
-        players = self.read_data()
-        players_in_position = [player for player in players if player['position'] == position]
-        if players_in_position:
-            total_ball_control = sum(player['ball_control'] for player in players_in_position)
-            return total_ball_control / len(players_in_position)
-        else:
-            return 0
+        return [player for player in players if player['achievements'] == recognition]
