@@ -1,7 +1,6 @@
-from controller.student_controller import StudentController
+from controller.player_controller import PlayerController
 
 if __name__ == '__main__':
-    controller = StudentController()
+    controller = PlayerController()
     controller.run()
-
 
