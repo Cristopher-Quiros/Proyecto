@@ -8,14 +8,13 @@ class PlayerModel:  # Define la clase PlayerModel
     def read_data(self):
         try:
             with open(self._data_file, 'r') as file:
-                return json.load(file)  # Devuelve los datos del archivo JSON
+                return json.load(file)  # Carga los datos del archivo JSON y los retorna
         except FileNotFoundError:
-            return []  # Devuelve una lista vacía si el archivo no existe
+            return []  # Retorna una lista vacía si el archivo no existe
 
-    # Escribe los datos en el archivo JSON
     def write_data(self, data):
         with open(self._data_file, 'w') as file:
-            json.dump(data, file, indent=4)  # Escribe los datos en el archivo JSON con sangría de 4 espacios
+            json.dump(data, file, indent=4)  # Escribe los datos en el archivo JSON con formato indentado
 
     # Agrega un nuevo jugador a la lista de jugadores si no existe ya en la lista
     def add_player(self, player_data):
@@ -40,7 +39,7 @@ class PlayerModel:  # Define la clase PlayerModel
     def get_player(self, player_id):
         players = self.read_data()  # Obtiene la lista actual de jugadores
         for player in players:
-            if player['id'] == player_id:  # Comprueba si el ID del jugador coincide
+            if player['id'] == player_id:  # Comparación sin conversión a cadena
                 return player  # Devuelve el jugador encontrado
         return None  # Devuelve None si no se encuentra el jugador
 
@@ -89,3 +88,32 @@ class PlayerModel:  # Define la clase PlayerModel
     def players_by_recognition(self, recognition):
         players = self.read_data()  # Obtiene la lista actual de jugadores
         return [player for player in players if player['achievements'] == recognition]  # Filtra los jugadores con los mismos logros
+
+    def get_player_stats_by_id(self, player_id):
+        # Obtiene las estadísticas de un jugador por su ID
+        player = self.get_player(player_id)  # Obtiene la información del jugador por su ID
+        if player:
+            return {key: value for key, value in player.items() if
+                    key not in ['id', 'name', 'date_of_birth', 'origin', 'gender', 'height', 'weight', 'position',
+                                'club', 'achievements']}  # Retorna las estadísticas del jugador
+        else:
+            return None  # Retorna None si el jugador no se encuentra
+
+    def compare_players_stats_by_position(self, position):
+        # Compara las estadísticas de los jugadores que juegan en la misma posición
+        players = self.players_by_position(position)  # Obtiene la lista de jugadores que juegan en la misma posición
+        stats_comparison = {}  # Inicializa un diccionario para almacenar las estadísticas de comparación
+        for player in players:
+            stats_comparison[player['name']] = {key: value for key, value in player.items() if
+                                                key not in ['id', 'name', 'date_of_birth', 'origin', 'gender', 'height',
+                                                            'weight', 'position', 'club',
+                                                            'achievements']}  # Agrega las estadísticas del jugador al diccionario
+        return stats_comparison  # Retorna el diccionario de comparación de estadísticas
+
+    def get_player_statistics(self, player_id):
+        players = self.read_data()  # Obtiene la lista actual de jugadores
+        for player in players:
+            if player['id'] == player_id:  # Comprueba si el ID del jugador coincide
+                player_stats = {key: value for key, value in player.items() if key not in ['id', 'name']}  # Obtiene las estadísticas del jugador
+                return player_stats  # Devuelve las estadísticas del jugador si se encuentra
+        return None  # Devuelve None si no se encuentra el jugador

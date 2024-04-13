@@ -4,8 +4,8 @@ from view.player_view import PlayerView  # Importa la clase PlayerView del módu
 
 class PlayerController:  # Define la clase PlayerController
     def __init__(self):
-        self.model = PlayerModel('players.json')  # Inicializa el modelo con el archivo 'players.json'
-        self.view = PlayerView('players.json')  # Inicializa la vista con el archivo 'players.json'
+        self.model = PlayerModel('players_data.json')  # Inicializa el modelo con el archivo 'players.json'
+        self.view = PlayerView('players_data.json')  # Inicializa la vista con el archivo 'players.json'
 
     def run(self):
         while True:
@@ -69,19 +69,56 @@ class PlayerController:  # Define la clase PlayerController
         while True:
             choice = self.view.get_list_option()  # Obtiene la opción seleccionada por el usuario desde la vista
             if choice == '1':
-                origin = self.view.get_origin_input()  # Obtiene la origen deseada desde la vista
-                filtered_players = self.model.players_by_origin(origin)  # Filtra los jugadores por origen
-                self.view.show_player_list(filtered_players)  # Muestra la lista filtrada de jugadores
+                self.filter_and_show_players_by_origin()
                 break  # Sale del bucle while
             elif choice == '2':
-                position = self.view.get_position_input()  # Obtiene la posición deseada desde la vista
-                filtered_players = self.model.female_players_by_position(position)  # Filtra los jugadores por posición
-                self.view.show_player_list(filtered_players)  # Muestra la lista filtrada de jugadores
+                self.filter_and_show_players_by_position()
                 break  # Sale del bucle while
             elif choice == '3':
-                recognition = self.view.get_recognition_input()  # Obtiene el logro deseado desde la vista
-                filtered_players = self.model.players_by_recognition(recognition)  # Filtra los jugadores por logro
-                self.view.show_player_list(filtered_players)  # Muestra la lista filtrada de jugadores
+                self.filter_and_show_players_by_recognition()
                 break  # Sale del bucle while
             else:
                 self.view.show_message("Opción inválida, intente de nuevo.")  # Muestra un mensaje de error para opciones inválidas
+
+    def filter_and_show_players_by_origin(self):
+        origin = self.view.get_origin_input()  # Obtiene la origen deseada desde la vista
+        filtered_players = self.model.players_by_origin(origin)  # Filtra los jugadores por origen
+        self.view.show_player_list(filtered_players)  # Muestra la lista filtrada de jugadores
+
+    def filter_and_show_players_by_position(self):
+        position = self.view.get_position_input()  # Obtiene la posición deseada desde la vista
+        filtered_players = self.model.players_by_position(position)  # Filtra los jugadores por posición
+        self.view.show_player_list(filtered_players)  # Muestra la lista filtrada de jugadores
+
+    def filter_and_show_players_by_recognition(self):
+        recognition = self.view.get_recognition_input()  # Obtiene el logro deseado desde la vista
+        filtered_players = self.model.players_by_recognition(recognition)  # Filtra los jugadores por logro
+        self.view.show_player_list(filtered_players)  # Muestra la lista filtrada de jugadores
+
+    def show_player_statistics(self):
+        option = self.view.show_stats_menu()
+        if option == '1':
+            self._show_player_stats_by_id()
+        elif option == '2':
+            self._show_players_stats_by_position()
+        else:
+            self.view.show_message("Opción inválida. Inténtelo de nuevo.")
+
+    def _show_player_stats_by_id(self):
+        player_id = self.view.get_player_id()
+        player = self.model.get_player(player_id)
+        message = "Estadísticas del jugador:" if player else "No se encontró ningún jugador con ese ID."
+        self.view.show_message(message)
+        if player:
+            self._show_player_statistics_table(player)
+
+    def _show_players_stats_by_position(self):
+        position = self.view.get_position_input()
+        players = self.model.players_by_position(position)
+        message = f"Estadísticas de jugadores en posición '{position}':" if players else "No se encontraron jugadores con esa posición."
+        self.view.show_message(message)
+        for player in players:
+            self._show_player_statistics_table(player)
+
+    def _show_player_statistics_table(self, player):
+        self.view.show_player_statistics(player)

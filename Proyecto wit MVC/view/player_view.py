@@ -45,6 +45,15 @@ class PlayerView:
         player_data['position'] = self.validate_text_input("Posición en campo del jugador: ")  # Valida y obtiene la posición en campo del jugador
         player_data['club'] = self.validate_text_input("Club militante del jugador: ")  # Valida y obtiene el club del jugador
         player_data['achievements'] = self.validate_int_input("Reconocimientos del jugador: ")  # Valida y obtiene los reconocimientos del jugador
+        print("Estadisticas del jugador (Solo en numeros):")
+        player_data['acceleration'] = self.validate_int_input("Velocidad del jugador: ")
+        player_data['short_passes'] = self.validate_int_input("Pases Cortos: ")
+        player_data['power_of_shot'] = self.validate_int_input("Poder de Tiro: ")
+        player_data['long_passes'] = self.validate_int_input("Pases Largos: ")
+        player_data['speed'] = self.validate_int_input("Velocidad: ")
+        player_data['jump'] = self.validate_int_input("Poder de Salto: ")
+        player_data['dribbling'] = self.validate_int_input("Dribleo: ")
+        player_data['ball_control'] = self.validate_int_input("Control del balon: ")
         return player_data  # Retorna los datos del jugador
 
     def get_player_id(self):
@@ -69,6 +78,31 @@ class PlayerView:
         print(f"Posición en campo: {player_info.get('position', 'N/A')}")  # Imprime la posición en campo del jugador
         print(f"Club Militante: {player_info.get('club', 'N/A')}")  # Imprime el club del jugador
         print(f"Reconocimientos: {player_info.get('achievements', 'N/A')}")  # Imprime los reconocimientos del jugador
+        print(f"Aceleración: {player_info.get('acceleration', 'N/A')}")
+        print(f"Pases Cortos: {player_info.get('short_passes', 'N/A')}")
+        print(f"Poder de Tiro: {player_info.get('power_of_shot', 'N/A')}")
+        print(f"Pases Largos: {player_info.get('long_passes', 'N/A')}")
+        print(f"Velocidad: {player_info.get('speed', 'N/A')}")
+        print(f"Agilidad: {player_info.get('agility', 'N/A')}")
+        print(f"Resistencia: {player_info.get('resistence', 'N/A')}")
+        print(f"Poder de Salto: {player_info.get('jump', 'N/A')}")
+        print(f"Dribleo: {player_info.get('dribbling', 'N/A')}")
+        print(f"Control del Balón: {player_info.get('ball_control', 'N/A')}")
+
+    def show_player_statistics(self, player_statistics):
+        print(f"ID: {player_statistics.get('id', 'N/A')}")  # Imprime el ID del jugador
+        print(f"Nombre: {player_statistics.get('name', 'N/A')}")  # Imprime el nombre del jugador
+        print(f"Aceleración: {player_statistics.get('acceleration', 'N/A')}")
+        print(f"Pases Cortos: {player_statistics.get('short_passes', 'N/A')}")
+        print(f"Poder de Tiro: {player_statistics.get('power_of_shot', 'N/A')}")
+        print(f"Pases Largos: {player_statistics.get('long_passes', 'N/A')}")
+        print(f"Velocidad: {player_statistics.get('speed', 'N/A')}")
+        print(f"Agilidad: {player_statistics.get('agility', 'N/A')}")
+        print(f"Resistencia: {player_statistics.get('resistence', 'N/A')}")
+        print(f"Poder de Salto: {player_statistics.get('jump', 'N/A')}")
+        print(f"Dribleo: {player_statistics.get('dribbling', 'N/A')}")
+        print(f"Control del Balón: {player_statistics.get('ball_control', 'N/A')}")
+
 
     def show_message(self, message):
         # Muestra un mensaje
@@ -80,43 +114,38 @@ class PlayerView:
         for player in player_list:
             print(f"ID: {player['id']}, Nombre: {player['name']}, Club: {player['club']}")  # Imprime el ID, nombre y club de cada jugador
 
+    def show_stats_menu(self):
+        # Muestra el menú de estadísticas
+        print("\nMenú de Estadísticas:")
+        print("1. Ver estadísticas de un jugador por ID")
+        print("2. Comparar estadísticas de jugadores por posición en el campo")
+        return input("Seleccione una opción: ")  # Retorna la opción seleccionada por el usuario
+
+    def show_player_stats(self, player_stats):
+        # Muestra las estadísticas de un jugador
+        print("\nEstadísticas del Jugador:")
+        for stat, value in player_stats.items():
+            print(f"{stat}: {value}")
+
+    def show_players_stats_comparison(self, players_stats_comparison):
+        # Muestra la comparación de estadísticas de los jugadores que juegan en la misma posición
+        print("\nComparación de Estadísticas de Jugadores:")
+        for player, stats in players_stats_comparison.items():
+            print(f"\nJugador: {player}")
+            for stat, value in stats.items():
+                print(f"{stat}: {value}")
+
+    def get_player_id_input(self):
+        # Obtiene el ID del jugador desde la entrada del usuario
+        return input("Ingrese el ID del jugador: ")
+
+    def get_position_for_comparison(self):
+        # Obtiene la posición en el campo para comparar las estadísticas de los jugadores
+        return self.get_position_input()
+
     def show_players_by_origin(self, count):
         # Muestra la cantidad de jugadores por origen
         print(f"Cantidad de jugadores por origen: {count}")  # Imprime la cantidad de jugadores por origen
-
-    def show_players_in_age_range(self, players):
-        # Muestra los jugadores en un rango de edad
-        print("\nJugadores en el rango de edad:")
-        for player in players:
-            print(player)  # Imprime cada jugador en el rango de edad
-
-    def show_players_by_height_and_gender(self, count):
-        # Muestra la cantidad de jugadores por altura y género
-        print(f"Cantidad de jugadores por altura y género: {count}")  # Imprime la cantidad de jugadores por altura y género
-
-    def show_players_by_club(self, players):
-        # Muestra los jugadores de un club específico
-        print("\nJugadores del club específico:")
-        for player in players:
-            print(player)  # Imprime cada jugador del club específico
-
-    def show_female_players_by_position(self, count):
-        # Muestra la cantidad de jugadoras por posición en el campo
-        print(f"Cantidad de jugadoras por posición en el campo: {count}")  # Imprime la cantidad de jugadoras por posición en el campo
-
-    def show_top_players_by_height_and_agility(self, top_players):
-        # Muestra los 10 mejores jugadores por altura y agilidad
-        print("\nTop 10 jugadores por altura y agilidad:")
-        for player in top_players:
-            print(player)  # Imprime los 10 mejores jugadores por altura y agilidad
-
-    def show_players_by_speed_range(self, count):
-        # Muestra la cantidad de jugadores por rango de velocidad
-        print(f"Cantidad de jugadores por rango de velocidad: {count}")  # Imprime la cantidad de jugadores por rango de velocidad
-
-    def show_average_ball_control_by_position(self, average):
-        # Muestra el promedio de control de balón para una posición específica
-        print(f"Promedio de control de balón para la posición específica: {average}")  # Imprime el promedio de control de balón para la posición específica
 
     def validate_text_input(self, message):
         # Valida la entrada de texto
