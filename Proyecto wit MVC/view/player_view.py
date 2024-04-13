@@ -1,186 +1,341 @@
-import datetime  # Importa el módulo datetime para trabajar con fechas
-import json  # Importa el módulo json para leer y escribir archivos JSON
+import datetime
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox, QInputDialog, QAction, QMenu
 
-class PlayerView:
+class PlayerView(QWidget):
     def __init__(self, data_file):
-        # Inicializa la vista con el archivo de datos
-        self._data_file = data_file
+        super().__init__()
+        self.data_file = data_file
+        self.controller = None
+        self.setWindowTitle('Player Management System')
+        self.layout = QVBoxLayout(self)
 
-    def read_data(self):
-        # Lee los datos del archivo JSON
-        try:
-            with open(self._data_file, 'r') as file:
-                return json.load(file)  # Carga los datos del archivo JSON y los retorna
-        except FileNotFoundError:
-            return []  # Retorna una lista vacía si el archivo no existe
+        # Botones básicos
+        self.add_button = QPushButton('Añadir Jugador')
+        self.add_button.clicked.connect(self.add_player)
+        self.layout.addWidget(self.add_button)
 
-    def write_data(self, data):
-        # Escribe los datos en el archivo JSON
-        with open(self._data_file, 'w') as file:
-            json.dump(data, file, indent=4)  # Escribe los datos en el archivo JSON con formato indentado
+        self.read_button = QPushButton('Consultar Jugador')
+        self.read_button.clicked.connect(self.read_player)
+        self.layout.addWidget(self.read_button)
 
-    def show_menu(self):
-        # Muestra el menú principal
-        print("\nMenú Principal:")
-        print("1. Insertar un nuevo jugador")
-        print("2. Leer información de un jugador")
-        print("3. Modificar datos de un jugador")
-        print("4. Eliminar un jugador de la base de datos")
-        print("5. Visualizar la Lista de Jugadores")
-        print("6. Estadísticas de Jugadores")
-        print("7. Consultas Avanzadas")
-        print("8. Salir del sistema")
-        return input("Seleccione una opción: ")  # Retorna la opción seleccionada por el usuario
+        self.update_button = QPushButton('Actualizar Jugador')
+        self.update_button.clicked.connect(self.update_player)
+        self.layout.addWidget(self.update_button)
 
-    def get_player_data(self):
-        # Obtiene los datos de un nuevo jugador
-        player_data = {}
-        player_data['id'] = self.validate_int_input("ID del jugador: ")  # Valida y obtiene el ID del jugador
-        player_data['name'] = self.validate_text_input("Nombre del jugador: ")  # Valida y obtiene el nombre del jugador
-        player_data['date_of_birth'] = self.validate_date_input("Fecha de nacimiento (YYYY-MM-DD): ")  # Valida y obtiene la fecha de nacimiento del jugador
-        player_data['origin'] = self.validate_text_input("Origen del jugador: ")  # Valida y obtiene el origen del jugador
-        player_data['gender'] = self.validate_gender_input("Género (Masculino/Femenino): ")  # Valida y obtiene el género del jugador
-        player_data['height'] = self.validate_float_input("Altura del jugador (en metros): ")  # Valida y obtiene la altura del jugador
-        player_data['weight'] = self.validate_float_input("Peso del jugador (en kg): ")  # Valida y obtiene el peso del jugador
-        player_data['position'] = self.validate_text_input("Posición en campo del jugador: ")  # Valida y obtiene la posición en campo del jugador
-        player_data['club'] = self.validate_text_input("Club militante del jugador: ")  # Valida y obtiene el club del jugador
-        player_data['achievements'] = self.validate_int_input("Reconocimientos del jugador: ")  # Valida y obtiene los reconocimientos del jugador
-        return player_data  # Retorna los datos del jugador
+        self.delete_button = QPushButton('Borrar Jugador')
+        self.delete_button.clicked.connect(self.delete_player)
+        self.layout.addWidget(self.delete_button)
 
-    def get_player_id(self):
-        # Obtiene el ID de un jugador
-        while True:
-            try:
-                player_id = int(input("Ingrese el ID del jugador: "))  # Solicita al usuario ingresar el ID del jugador
-                return player_id  # Retorna el ID del jugador
-            except ValueError:
-                print("El ID debe ser un número entero. Inténtelo de nuevo.")  # Maneja la excepción en caso de que no se ingrese un número entero
+        # Botón para mostrar el menú de opciones
+        self.show_menu_button = QPushButton('Opciones de Jugador')
+        self.show_menu_button.setMenu(self.create_menu())
+        self.layout.addWidget(self.show_menu_button)
 
-    def show_player_info(self, player_info):
-        # Muestra la información de un jugador
-        print("Información del Jugador:")
-        print(f"ID: {player_info.get('id', 'N/A')}")  # Imprime el ID del jugador
-        print(f"Nombre: {player_info.get('name', 'N/A')}")  # Imprime el nombre del jugador
-        print(f"Fecha de nacimiento: {player_info.get('date_of_birth', 'N/A')}")  # Imprime la fecha de nacimiento del jugador
-        print(f"Origen: {player_info.get('origin', 'N/A')}")  # Imprime el origen del jugador
-        print(f"Género: {player_info.get('gender', 'N/A')}")  # Imprime el género del jugador
-        print(f"Altura: {player_info.get('height', 'N/A')} m")  # Imprime la altura del jugador
-        print(f"Peso: {player_info.get('weight', 'N/A')} kg")  # Imprime el peso del jugador
-        print(f"Posición en campo: {player_info.get('position', 'N/A')}")  # Imprime la posición en campo del jugador
-        print(f"Club Militante: {player_info.get('club', 'N/A')}")  # Imprime el club del jugador
-        print(f"Reconocimientos: {player_info.get('achievements', 'N/A')}")  # Imprime los reconocimientos del jugador
+        # Botón para mostrar opciones avanzadas
+        self.advanced_button = QPushButton('Consultas Avanzadas')
+        self.advanced_button.clicked.connect(self.show_advanced_queries_menu)
+        self.layout.addWidget(self.advanced_button)
+
+        self.exit_button = QPushButton('Salir')
+        self.exit_button.clicked.connect(self.exit_application)
+        self.layout.addWidget(self.exit_button)
+
+        self.setLayout(self.layout)
+
+    def set_controller(self, controller):
+        self.controller = controller
+
+    def create_menu(self):
+        menu = QMenu()
+        menu.addAction("Mostrar Lista de Jugadores", self.show_player_list)
+        menu.addAction("Filtrar por Origen", self.filter_players_by_origin)
+        menu.addAction("Filtrar por Posición", self.filter_players_by_position)
+        menu.addAction("Filtrar por Reconocimientos", self.filter_players_by_recognition)
+        return menu
+
+    def exit_application(self):
+        QApplication.quit()  # Cerrar la aplicación
+
+    def show_player_list(self, players):
+        if players:
+            player_info = "\n".join([f"ID: {player['id']}, Name: {player['name']}, Club: {player['club']}" for player in players])
+            QMessageBox.information(self, "Player List", player_info)
+        else:
+            QMessageBox.information(self, "Player List", "No players found.")
+
+    def filter_players_by_origin(self):
+        origin = self.get_origin_input()
+        if origin:
+            filtered_players = self.controller.model.filter_players_by_origin(origin)
+            if filtered_players:
+                self.show_player_list(filtered_players)
+            else:
+                self.show_message("No hay jugadores con ese lugar de Origen.")
+        else:
+            self.show_message("Ingresa un lugar de Origen valido.")
+
+    def filter_players_by_position(self):
+        position = self.get_position_input()
+        if position:
+            filtered_players = self.controller.model.filter_players_by_position(position)
+            if filtered_players:
+                self.show_player_list(filtered_players)
+            else:
+                self.show_message("No hay jugadores con esa posición en el campo.")
+        else:
+            self.show_message("Ingresa una posición valida.")
+
+    def filter_players_by_recognition(self):
+        recognition, ok = QInputDialog.getInt(self, 'Recognition Input', 'Ingresa el numero minimo de reconocimientos:')
+        if ok:
+            filtered_players = self.controller.model.filter_players_by_recognition(recognition)
+            if filtered_players:
+                self.show_player_list(filtered_players)
+            else:
+                self.show_message("No hay jugadores con esa cantidad de reconocimientos.")
+        else:
+            self.show_message("Ingresa un numero valido!.")
+
+    def add_player(self):
+        player_data = self.get_player_data()
+        if not self.controller.model.get_player(player_data['id']):
+            self.controller.model.add_player(player_data)
+            self.show_message("Jugador añadido exitosamente.")
+        else:
+            self.show_message("El jugador ya existe!.")
+
+    def read_player(self):
+        player_id = self.get_player_id_input()
+        player = self.controller.model.get_player(player_id)
+        if player:
+            self.show_player_info(player)
+        else:
+            self.show_message("No hay ningún jugador con ese ID.")
+
+    def update_player(self):
+        player_id = self.get_player_id_input()
+        player_data = self.get_player_data()
+        success = self.controller.model.update_player(player_id, player_data)
+        if success:
+            self.show_message("Jugador actualizado con exito!.")
+        else:
+            self.show_message("Error al actualizar el jugador.")
+
+    def delete_player(self):
+        player_id = self.get_player_id_input()
+        success = self.controller.model.delete_player(player_id)
+        if success:
+            self.show_message("Jugador borrado exitosamente!.")
+        else:
+            self.show_message("Error al borrar el jugador!.")
+
+    def show_advanced_queries_menu(self):
+        menu = QMenu()
+        menu.addAction("Cantidad de Jugadores Por Origen", self.count_players_by_origin)
+        menu.addAction("Jugadores en un rango de edad", self.players_in_age_range)
+        menu.addAction("Cantidad de jugadores por altura y genero", self.count_players_by_height_and_gender)
+        menu.addAction("Jugadores de un club específico", self.players_from_specific_club)
+        menu.addAction("Cantidad de jugadoras por posición", self.count_female_players_by_position)
+        menu.addAction("Top 10 Jugadores por altura y agilidad", self.top_10_players_by_height_and_agility)
+        menu.addAction("Cantidad de Jugadores por rango de velocidad", self.count_players_in_speed_range)
+        menu.addAction("Promedio de Control de Balón por posición", self.average_ball_control_by_position)
+        menu.exec_(self.advanced_button.mapToGlobal(self.advanced_button.rect().bottomLeft()))
+
+    def count_players_by_origin(self):
+        origin = self.get_origin_input()
+        if origin:
+            count = self.controller.model.count_players_by_origin(origin)
+            self.show_message(f"{count}")
+
+    def players_in_age_range(self):
+        min_age = self.validate_int_input("Enter minimum age:")
+        max_age = self.validate_int_input("Enter maximum age:")
+        if min_age is not None and max_age is not None:
+            filtered_players = self.controller.model.players_in_age_range(min_age, max_age)
+            if filtered_players:
+                self.show_player_list(filtered_players)
+            else:
+                self.show_message("No players found in the specified age range.")
+
+    def count_players_by_height_and_gender(self):
+        height = self.validate_float_input("Enter player's height:")
+        gender = self.validate_gender_input("Enter player's gender:")
+        count = self.controller.model.count_players_by_height_and_gender(height, gender)
+        self.show_message(f"Number of {gender} players with height {height}m: {count}")
+
+    def players_from_specific_club(self):
+        club = self.validate_text_input("Enter the club name:")
+        count = self.controller.model.players_from_specific_club(club)
+        self.show_message(f"Number of players from {club}: {count}")
+
+    def count_female_players_by_position(self):
+        position = self.validate_text_input("Enter position:")
+        count = self.controller.model.count_female_players_by_position(position)
+        self.show_message(f"Number of female players in {position} position: {count}")
+
+    def top_10_players_by_height_and_agility(self):
+        top_players = self.controller.model.top_10_players_by_height_and_agility()
+        if top_players:
+            player_list = [f"Name: {player['name']}, Height: {player['height']}, Agility: {player['agility']}" for player in top_players]
+            self.show_message("\n".join(player_list))
+        else:
+            self.show_message("No players found.")
+
+    def count_players_in_speed_range(self):
+        min_speed = self.validate_int_input("Enter minimum speed:")
+        max_speed = self.validate_int_input("Enter maximum speed:")
+        count = self.controller.model.count_players_in_speed_range(min_speed, max_speed)
+        self.show_message(f"Number of players with speed between {min_speed} and {max_speed}: {count}")
+
+    def average_ball_control_by_position(self):
+        position = self.validate_text_input("Enter position:")
+        average = self.controller.model.average_ball_control_by_position(position)
+        self.show_message(f"Average ball control for players in {position} position: {average}")
 
     def show_message(self, message):
-        # Muestra un mensaje
-        print(message)  # Imprime el mensaje
+        QMessageBox.information(self, "Information", message)
 
-    def show_player_list(self, player_list):
-        # Muestra una lista de jugadores
-        print("\nLista de Jugadores:")
-        for player in player_list:
-            print(f"ID: {player['id']}, Nombre: {player['name']}, Club: {player['club']}")  # Imprime el ID, nombre y club de cada jugador
+    def get_player_data(self):
+        player_data = {}
+        player_data['id'] = self.validate_int_input("ID of the player: ")
+        player_data['name'] = self.validate_text_input("Name of the player: ")
+        player_data['date_of_birth'] = self.validate_date_input("Date of birth (YYYY-MM-DD): ")
+        player_data['origin'] = self.validate_text_input("Origin of the player: ")
+        player_data['gender'] = self.validate_gender_input("Gender (Male/Female): ")
+        player_data['height'] = self.validate_float_input("Height of the player (in meters): ")
+        player_data['weight'] = self.validate_float_input("Weight of the player (in kg): ")
+        player_data['position'] = self.validate_text_input("Position in field of the player: ")
+        player_data['club'] = self.validate_text_input("Club of the player: ")
+        player_data['achievements'] = self.validate_int_input("Achievements of the player: ")
+        player_data['acceleration'] = self.validate_int_input("Acceleration of the player: ")
+        player_data['short_passes'] = self.validate_int_input("Short Passes: ")
+        player_data['power_of_shot'] = self.validate_int_input("Power of Shot: ")
+        player_data['long_passes'] = self.validate_int_input("Long Passes: ")
+        player_data['speed'] = self.validate_int_input("Speed: ")
+        player_data['agility'] = self.validate_int_input("Agility: ")
+        player_data['resistence'] = self.validate_int_input("Resistence: ")
+        player_data['jump'] = self.validate_int_input("Jump: ")
+        player_data['dribbling'] = self.validate_int_input("Dribbling: ")
+        player_data['ball_control'] = self.validate_int_input("Ball Control: ")
+        return player_data
 
-    def show_players_by_origin(self, count):
-        # Muestra la cantidad de jugadores por origen
-        print(f"Cantidad de jugadores por origen: {count}")  # Imprime la cantidad de jugadores por origen
-
-    def show_players_in_age_range(self, players):
-        # Muestra los jugadores en un rango de edad
-        print("\nJugadores en el rango de edad:")
-        for player in players:
-            print(player)  # Imprime cada jugador en el rango de edad
-
-    def show_players_by_height_and_gender(self, count):
-        # Muestra la cantidad de jugadores por altura y género
-        print(f"Cantidad de jugadores por altura y género: {count}")  # Imprime la cantidad de jugadores por altura y género
-
-    def show_players_by_club(self, players):
-        # Muestra los jugadores de un club específico
-        print("\nJugadores del club específico:")
-        for player in players:
-            print(player)  # Imprime cada jugador del club específico
-
-    def show_female_players_by_position(self, count):
-        # Muestra la cantidad de jugadoras por posición en el campo
-        print(f"Cantidad de jugadoras por posición en el campo: {count}")  # Imprime la cantidad de jugadoras por posición en el campo
-
-    def show_top_players_by_height_and_agility(self, top_players):
-        # Muestra los 10 mejores jugadores por altura y agilidad
-        print("\nTop 10 jugadores por altura y agilidad:")
-        for player in top_players:
-            print(player)  # Imprime los 10 mejores jugadores por altura y agilidad
-
-    def show_players_by_speed_range(self, count):
-        # Muestra la cantidad de jugadores por rango de velocidad
-        print(f"Cantidad de jugadores por rango de velocidad: {count}")  # Imprime la cantidad de jugadores por rango de velocidad
-
-    def show_average_ball_control_by_position(self, average):
-        # Muestra el promedio de control de balón para una posición específica
-        print(f"Promedio de control de balón para la posición específica: {average}")  # Imprime el promedio de control de balón para la posición específica
+    def get_player_id_input(self):
+        player_id, ok = QInputDialog.getInt(self, 'Player ID', 'Enter the ID of the player:')
+        if ok:
+            return player_id
+        else:
+            return None
 
     def validate_text_input(self, message):
-        # Valida la entrada de texto
         while True:
-            value = input(message)  # Solicita al usuario ingresar un valor
-            if value.replace(" ", "").isalpha():  # Verifica si el valor contiene solo letras y espacios
-                return value  # Retorna el valor validado
+            value, ok = QInputDialog.getText(self, 'Text Input', message)
+            if ok:
+                # Check if the value contains only letters, spaces, and commas, and is in uppercase or lowercase format
+                if all(char.isalpha() or char.isspace() or char == ',' for char in value) and value.strip():
+                    return value.strip().capitalize()  # Convert the first letter of each word to uppercase
+                else:
+                    self.show_message("Invalid input. Please enter only alphabetical characters, spaces, and commas.")
             else:
-                print("Entrada inválida. Por favor, ingrese solo caracteres alfabéticos y espacios.")  # Imprime un mensaje de error
+                sys.exit()
 
     def validate_int_input(self, message):
-        # Valida la entrada de números enteros
         while True:
-            value = input(message)  # Solicita al usuario ingresar un valor
-            if value.isdigit():  # Verifica si el valor es un número entero
-                return int(value)  # Retorna el valor convertido a entero
+            value, ok = QInputDialog.getInt(self, 'Integer Input', message)
+            if ok:
+                if 0 <= value <= 100:  # Check if the value is between 0 and 100 (inclusive)
+                    return value
+                else:
+                    self.show_message("Invalid input. Please enter a number between 0 and 100.")
             else:
-                print("Entrada inválida. Por favor, ingrese solo números enteros.")  # Imprime un mensaje de error
-
+                sys.exit()
     def validate_float_input(self, message):
-        # Valida la entrada de números flotantes
         while True:
-            value = input(message)  # Solicita al usuario ingresar un valor
-            try:
-                float_value = float(value)  # Intenta convertir el valor a flotante
-                return float_value  # Retorna el valor flotante validado
-            except ValueError:
-                print("Entrada inválida. Por favor, ingrese un número válido.")  # Imprime un mensaje de error
+            value, ok = QInputDialog.getText(self, 'Float Input', message)
+            if ok:
+                try:
+                    # Check if the input includes the unit (meters or kg)
+                    if "m" in value.lower():
+                        float_value = float(value.lower().replace("m", "").strip())
+                        if float_value >= 0:  # Check if the value is non-negative
+                            return float_value
+                        else:
+                            self.show_message("Invalid input. Please enter a non-negative number.")
+                    elif "kg" in value.lower():
+                        float_value = float(value.lower().replace("kg", "").strip())
+                        if float_value >= 0:  # Check if the value is non-negative
+                            return float_value
+                        else:
+                            self.show_message("Invalid input. Please enter a non-negative number.")
+                    else:
+                        self.show_message("Invalid input format. Please include the unit (meters or kg).")
+                except ValueError:
+                    self.show_message(
+                        "Invalid input. Please enter a valid floating-point number with the unit (meters or kg).")
+            else:
+                sys.exit()
 
     def validate_date_input(self, message):
-        # Valida la entrada de fechas
         while True:
-            value = input(message)  # Solicita al usuario ingresar una fecha
-            try:
-                datetime.datetime.strptime(value, "%Y-%m-%d")  # Intenta analizar la fecha en el formato especificado
-                return value  # Retorna la fecha validada
-            except ValueError:
-                print("Formato de fecha inválido. Por favor, ingrese la fecha en el formato correcto (YYYY-MM-DD).")  # Imprime un mensaje de error
+            value, ok = QInputDialog.getText(self, 'Date Input', message)
+            if ok:
+                try:
+                    datetime.datetime.strptime(value, "%Y-%m-%d")
+                    return value
+                except ValueError:
+                    self.show_message("Invalid date format. Please enter the date in the correct format (YYYY-MM-DD).")
+            else:
+                sys.exit()
 
     def validate_gender_input(self, message):
-        # Valida la entrada de género
         while True:
-            value = input(message)  # Solicita al usuario ingresar el género
-            if value.lower() in ['masculino', 'femenino']:  # Verifica si el género es masculino o femenino
-                return value.capitalize()  # Retorna el género con la primera letra en mayúscula
+            items = ['Male', 'Female']
+            item, ok = QInputDialog.getItem(self, 'Gender Input', message, items, 0, False)
+            if ok:
+                return item
             else:
-                print("Género inválido. Por favor, ingrese 'Masculino' o 'Femenino'.")  # Imprime un mensaje de error
-
-    def get_list_option(self):
-        # Obtiene la opción de la lista
-        print("\nOpciones de visualización:")
-        print("1. Por origen")
-        print("2. Por posición de campo")
-        print("3. Por reconocimientos")
-        return input("Seleccione una opción para filtrar la lista de jugadores: ")  # Retorna la opción seleccionada por el usuario
+                sys.exit()
 
     def get_origin_input(self):
-        # Obtiene el origen para filtrar la lista de jugadores
-        return input("Ingrese el origen para filtrar la lista de jugadores: ")  # Retorna el origen ingresado por el usuario
+        origin, ok = QInputDialog.getText(self, 'Origin Input', 'Enter the origin of the player:')
+        if ok:
+            # Check if the value contains only letters, spaces, and commas, and is in uppercase or lowercase format
+            if all(char.isalpha() or char.isspace() or char == ',' for char in origin) and origin.strip():
+                return origin.strip().capitalize()  # Convert the first letter of each word to uppercase
+            else:
+                self.show_message("Invalid input. Please enter only alphabetical characters, spaces, and commas.")
+        else:
+            sys.exit()
 
     def get_position_input(self):
-        # Obtiene la posición para filtrar la lista de jugadores
-        return input("Ingrese la posición para filtrar la lista de jugadores: ")  # Retorna la posición ingresada por el usuario
+        position, ok = QInputDialog.getText(self, 'Position Input', 'Enter the position of the player:')
+        if ok:
+            return position
+        else:
+            sys.exit()
 
     def get_recognition_input(self):
-        # Obtiene el número de reconocimientos para filtrar la lista de jugadores
-        return input("Ingrese el número de reconocimientos para filtrar la lista de jugadores: ")  # Retorna el número de reconocimientos ingresado por el usuario
+        recognition, ok = QInputDialog.getText(self, 'Recognition Input', 'Enter the recognition of the player:')
+        if ok:
+            return recognition
+        else:
+            sys.exit()
+
+    def show_player_info(self, player):
+        player_info = f"ID: {player['id']}\nName: {player['name']}\nClub: {player['club']}\n\n{self.format_stats(player)}"
+        self.show_message(player_info)
+
+    def format_stats(self, player):
+        stats = [
+            f"Acceleration: {player['acceleration']}",
+            f"Short Passes: {player['short_passes']}",
+            f"Power of Shot: {player['power_of_shot']}",
+            f"Long Passes: {player['long_passes']}",
+            f"Speed: {player['speed']}",
+            f"Agility: {player['agility']}",
+            f"Resistence: {player['resistence']}",
+            f"Jump: {player['jump']}",
+            f"Dribbling: {player['dribbling']}",
+            f"Ball Control: {player['ball_control']}"
+        ]
+        return "\n".join(stats)
