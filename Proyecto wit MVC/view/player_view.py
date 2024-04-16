@@ -46,9 +46,12 @@ class PlayerView(QWidget):
     def set_controller(self, controller):
         self.controller = controller
 
+    def handle_cancel(self):
+        self.show_message("Operación cancelada.")
+
     def create_menu(self):
         menu = QMenu()
-        menu.addAction("Mostrar Lista de Jugadores", self.show_player_list)
+        menu.addAction("Mostrar Lista de Jugadores", lambda: self.show_player_list(self.controller.model.get_players()))
         menu.addAction("Filtrar por Origen", self.filter_players_by_origin)
         menu.addAction("Filtrar por Posición", self.filter_players_by_position)
         menu.addAction("Filtrar por Reconocimientos", self.filter_players_by_recognition)
@@ -57,12 +60,89 @@ class PlayerView(QWidget):
     def exit_application(self):
         QApplication.quit()  # Cerrar la aplicación
 
+    # Metodo CRUD
+    def add_player(self):
+        player_data = self.get_player_data()
+        if player_data is not None:  # Verifica si se canceló la operación
+            if not self.controller.model.get_player(player_data['id']):
+                self.controller.model.add_player(player_data)
+                self.show_message("Jugador añadido exitosamente.")
+            else:
+                self.show_message("El jugador ya existe!.")
+        else:
+            self.show_message("Operación cancelada.")
+
+    def read_player(self):
+        player_id = self.get_player_id_input()
+        if player_id is not None:  # Verificar si se ingresó un ID de jugador válido
+            player = self.controller.model.get_player(player_id)
+            if player:
+                self.show_player_info(player)  # Mostrar la información del jugador en la vista
+                self.controller.show_menu()  # Llamar a show_menu() después de mostrar la información del jugador
+            else:
+                self.show_message("No hay ningún jugador con ese ID.")
+        else:
+            self.show_message("Operación cancelada.")  # Mostrar un mensaje si se cancela la operación
+
+    def update_player(self):
+        player_id = self.get_player_id_input()
+        if player_id is not None:
+            updated_player_data = self.get_player_data()  # Obtener los datos actualizados del jugador
+            updated_player_data['id'] = player_id  # Asegurar que el ID del jugador esté presente en los datos actualizados
+            success = self.controller.update_player(updated_player_data)  # Llamar al método update_player del controlador
+            if success:
+                self.show_message("Jugador actualizado exitosamente.")
+            else:
+                self.show_message("No se encontró ningún jugador con ese ID.")
+        else:
+            self.show_message("Operación cancelada.")
+
+    def delete_player(self):
+        player_id = self.get_player_id_input()
+        success = self.controller.model.delete_player(player_id)
+        if success:
+            self.show_message("Jugador borrado exitosamente!.")
+        else:
+            self.show_message("Error al borrar el jugador!.")
+
+    # Opcion de mostrar jugadores y sus respectivos filtros
+
+    def get_origin_input(self):
+        origin, ok = QInputDialog.getText(self, 'Origin Input', 'Enter the origin of the player:')
+        if ok:
+            # Check if the value contains only letters, spaces, and commas, and is in uppercase or lowercase format
+            if all(char.isalpha() or char.isspace() or char == ',' for char in origin) and origin.strip():
+                return origin.strip().capitalize()  # Convert the first letter of each word to uppercase
+            else:
+                self.show_message("Invalid input. Please enter only alphabetical characters, spaces, and commas.")
+        else:
+            pass  # Ignorar la cancelación del diálogo de entrada y continuar ejecutando el programa
+
+    def get_position_input(self):
+        position, ok = QInputDialog.getText(self, 'Position Input', 'Enter the position of the player:')
+        if ok:
+            return position
+        else:
+            pass  # Ignorar la cancelación del diálogo de entrada y continuar ejecutando el programa
+    def get_recognition_input(self):
+        recognition, ok = QInputDialog.getInt(self, 'Recognition Input', 'Enter the recognition of the player:')
+        if ok:
+            return recognition
+        else:
+            QMessageBox.information(self, "Operación cancelada", "La operación ha sido cancelada.")
+
+    def show_player_info(self, player):
+        player_info = f"ID: {player['id']}\nName: {player['name']}\nClub: {player['club']}\n\n{self.format_stats(player)}"
+        self.show_message(player_info)
+        self.controller.show_menu()  # Llamar a show_menu() después de mostrar la información del jugador
+
     def show_player_list(self, players):
         if players:
-            player_info = "\n".join([f"ID: {player['id']}, Name: {player['name']}, Club: {player['club']}" for player in players])
-            QMessageBox.information(self, "Player List", player_info)
+            player_info = "\n".join(
+                [f"ID: {player['id']}, Name: {player['name']}, Club: {player['club']}" for player in players])
+            self.show_message(player_info)
         else:
-            QMessageBox.information(self, "Player List", "No players found.")
+            self.show_message("No se encontraron jugadores.")
 
     def filter_players_by_origin(self):
         origin = self.get_origin_input()
@@ -97,38 +177,8 @@ class PlayerView(QWidget):
         else:
             self.show_message("Ingresa un numero valido!.")
 
-    def add_player(self):
-        player_data = self.get_player_data()
-        if not self.controller.model.get_player(player_data['id']):
-            self.controller.model.add_player(player_data)
-            self.show_message("Jugador añadido exitosamente.")
-        else:
-            self.show_message("El jugador ya existe!.")
 
-    def read_player(self):
-        player_id = self.get_player_id_input()
-        player = self.controller.model.get_player(player_id)
-        if player:
-            self.show_player_info(player)
-        else:
-            self.show_message("No hay ningún jugador con ese ID.")
-
-    def update_player(self):
-        player_id = self.get_player_id_input()
-        player_data = self.get_player_data()
-        success = self.controller.model.update_player(player_id, player_data)
-        if success:
-            self.show_message("Jugador actualizado con exito!.")
-        else:
-            self.show_message("Error al actualizar el jugador.")
-
-    def delete_player(self):
-        player_id = self.get_player_id_input()
-        success = self.controller.model.delete_player(player_id)
-        if success:
-            self.show_message("Jugador borrado exitosamente!.")
-        else:
-            self.show_message("Error al borrar el jugador!.")
+    # Consultas Avanzadas
 
     def show_advanced_queries_menu(self):
         menu = QMenu()
@@ -142,6 +192,7 @@ class PlayerView(QWidget):
         menu.addAction("Promedio de Control de Balón por posición", self.average_ball_control_by_position)
         menu.exec_(self.advanced_button.mapToGlobal(self.advanced_button.rect().bottomLeft()))
 
+    # Filtros de consultas avanzadas
     def count_players_by_origin(self):
         origin = self.get_origin_input()
         if origin:
@@ -149,31 +200,52 @@ class PlayerView(QWidget):
             self.show_message(f"{count}")
 
     def players_in_age_range(self):
-        min_age = self.validate_int_input("Enter minimum age:")
-        max_age = self.validate_int_input("Enter maximum age:")
-        if min_age is not None and max_age is not None:
-            filtered_players = self.controller.model.players_in_age_range(min_age, max_age)
-            if filtered_players:
-                self.show_player_list(filtered_players)
+        min_age, ok_min = QInputDialog.getInt(self, 'Age Input', 'Enter minimum age:')
+        if ok_min:
+            max_age, ok_max = QInputDialog.getInt(self, 'Age Input', 'Enter maximum age:')
+            if ok_max:
+                filtered_players = self.controller.model.players_in_age_range(min_age, max_age)
+                if filtered_players:
+                    self.show_player_list(filtered_players)
+                else:
+                    self.show_message("No players found in the specified age range.")
             else:
-                self.show_message("No players found in the specified age range.")
+                self.show_message("Operation canceled.")
+        else:
+            self.show_message("Operation canceled.")
 
     def count_players_by_height_and_gender(self):
-        height = self.validate_float_input("Enter player's height:")
-        gender = self.validate_gender_input("Enter player's gender:")
+        height, ok_height = QInputDialog.getDouble(self, 'Height Input', 'Enter player\'s height:')
+        if not ok_height:
+            self.show_message("Operation canceled.")
+            return
+
+        gender, ok_gender = QInputDialog.getItem(self, 'Gender Input', 'Select player\'s gender:', ['Male', 'Female'],
+                                                 0, False)
+        if not ok_gender:
+            self.show_message("Operation canceled.")
+            return
+
         count = self.controller.model.count_players_by_height_and_gender(height, gender)
         self.show_message(f"Number of {gender} players with height {height}m: {count}")
 
     def players_from_specific_club(self):
-        club = self.validate_text_input("Enter the club name:")
+        club, ok_club = QInputDialog.getText(self, 'Club Input', 'Enter the club name:')
+        if not ok_club:
+            self.show_message("Operation canceled.")
+            return
+
         count = self.controller.model.players_from_specific_club(club)
         self.show_message(f"Number of players from {club}: {count}")
 
     def count_female_players_by_position(self):
-        position = self.validate_text_input("Enter position:")
+        position, ok_position = QInputDialog.getText(self, 'Position Input', 'Enter position:')
+        if not ok_position:
+            self.show_message("Operation canceled.")
+            return
+
         count = self.controller.model.count_female_players_by_position(position)
         self.show_message(f"Number of female players in {position} position: {count}")
-
     def top_10_players_by_height_and_agility(self):
         top_players = self.controller.model.top_10_players_by_height_and_agility()
         if top_players:
@@ -183,19 +255,33 @@ class PlayerView(QWidget):
             self.show_message("No players found.")
 
     def count_players_in_speed_range(self):
-        min_speed = self.validate_int_input("Enter minimum speed:")
-        max_speed = self.validate_int_input("Enter maximum speed:")
+        min_speed, ok_min_speed = QInputDialog.getInt(self, 'Speed Input', 'Enter minimum speed:')
+        if not ok_min_speed:
+            self.show_message("Operation canceled.")
+            return
+
+        max_speed, ok_max_speed = QInputDialog.getInt(self, 'Speed Input', 'Enter maximum speed:')
+        if not ok_max_speed:
+            self.show_message("Operation canceled.")
+            return
+
         count = self.controller.model.count_players_in_speed_range(min_speed, max_speed)
         self.show_message(f"Number of players with speed between {min_speed} and {max_speed}: {count}")
 
     def average_ball_control_by_position(self):
-        position = self.validate_text_input("Enter position:")
+        position, ok_position = QInputDialog.getText(self, 'Position Input', 'Enter position:')
+        if not ok_position:
+            self.show_message("Operation canceled.")
+            return
+
         average = self.controller.model.average_ball_control_by_position(position)
         self.show_message(f"Average ball control for players in {position} position: {average}")
+
 
     def show_message(self, message):
         QMessageBox.information(self, "Information", message)
 
+    # Informacion para agregar un jugador en el CRUD
     def get_player_data(self):
         player_data = {}
         player_data['id'] = self.validate_int_input("ID of the player: ")
@@ -220,13 +306,16 @@ class PlayerView(QWidget):
         player_data['ball_control'] = self.validate_int_input("Ball Control: ")
         return player_data
 
+    # Consultar ID de un jugador
     def get_player_id_input(self):
-        player_id, ok = QInputDialog.getInt(self, 'Player ID', 'Enter the ID of the player:')
-        if ok:
-            return player_id
-        else:
-            return None
+        while True:
+            player_id, ok = QInputDialog.getInt(self, 'Player ID', 'Enter the ID of the player:')
+            if ok:
+                return player_id
+            else:
+                return None  # Salir si se cancela la entrada de ID
 
+    # Validaciones
     def validate_text_input(self, message):
         while True:
             value, ok = QInputDialog.getText(self, 'Text Input', message)
@@ -295,36 +384,7 @@ class PlayerView(QWidget):
                 return item
             else:
                 sys.exit()
-
-    def get_origin_input(self):
-        origin, ok = QInputDialog.getText(self, 'Origin Input', 'Enter the origin of the player:')
-        if ok:
-            # Check if the value contains only letters, spaces, and commas, and is in uppercase or lowercase format
-            if all(char.isalpha() or char.isspace() or char == ',' for char in origin) and origin.strip():
-                return origin.strip().capitalize()  # Convert the first letter of each word to uppercase
-            else:
-                self.show_message("Invalid input. Please enter only alphabetical characters, spaces, and commas.")
-        else:
-            sys.exit()
-
-    def get_position_input(self):
-        position, ok = QInputDialog.getText(self, 'Position Input', 'Enter the position of the player:')
-        if ok:
-            return position
-        else:
-            sys.exit()
-
-    def get_recognition_input(self):
-        recognition, ok = QInputDialog.getText(self, 'Recognition Input', 'Enter the recognition of the player:')
-        if ok:
-            return recognition
-        else:
-            sys.exit()
-
-    def show_player_info(self, player):
-        player_info = f"ID: {player['id']}\nName: {player['name']}\nClub: {player['club']}\n\n{self.format_stats(player)}"
-        self.show_message(player_info)
-
+    # Formato en que aparecen las estadisticas
     def format_stats(self, player):
         stats = [
             f"Acceleration: {player['acceleration']}",
