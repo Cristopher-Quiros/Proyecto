@@ -5,16 +5,21 @@ class PlayerModel:
     def __init__(self, data_file):
         self.data_file = data_file
 
-    def read_data(self):
+    def read_data(self, name='players_data.json'):
         try:
-            with open(self.data_file, 'r') as file:
-                return json.load(file)
+            with open(name, 'r+') as file:
+                data = json.load(file)
+                return data
         except FileNotFoundError:
             return []
+        except json.JSONDecodeError:
+            return []
 
-    def write_data(self, data):
-        with open(self.data_file, 'w') as file:
+    def write_data(self, data, name='players_data.json'):
+        print("Writing data to file...")
+        with open(name, 'w+') as file:
             json.dump(data, file, indent=4)
+        print("Data written to file successfully.")
 
     def add_player(self, player_data):
         players = self.read_data()
@@ -28,14 +33,27 @@ class PlayerModel:
                 return player
         return None
 
-    def update_player(self, player_id, new_player_data):
+    def update_player(self, updated_players):
+        print("Updating player data...")
         players = self.read_data()
-        for player in players:
-            if player['id'] == player_id:
-                player.update(new_player_data)
-                self.write_data(players)
-                return True
-        return False
+
+        for updated_player in updated_players:
+            updated_player_id = updated_player.get('id')  # Obtener el ID del jugador actualizado
+            if updated_player_id is not None:
+                for i, player in enumerate(players):
+                    if player['id'] == updated_player_id:
+                        # Actualizar los campos del jugador con los datos actualizados
+                        for key, value in updated_player.items():
+                            if key in player:
+                                player[key] = value
+                        break
+
+        if players:
+            print("Player data updated successfully.")
+            return True
+        else:
+            print("Error: players list is empty.")
+            return False
 
     def delete_player(self, player_id):
         players = self.read_data()
@@ -47,7 +65,10 @@ class PlayerModel:
         return False
 
     def get_players(self):
-        return self.read_data()
+        players = self.read_data()
+        if not players:
+            print("No hay información de jugadores disponible.")
+        return players
 
     # Agrega más métodos aquí según sea necesario para otras operaciones CRUD
 
@@ -122,3 +143,4 @@ class PlayerModel:
             return players_in_position
         else:
             return None
+
